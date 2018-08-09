@@ -1,0 +1,39 @@
+<div class="container mt-5">
+  <div class="row">
+    <div class="col-sm-12 col-md-6 offset-md-3">
+      <form method="post" action="/user/create">
+        {{#if error}}
+          <div class="alert alert-danger" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+            <strong>Oh snap!</strong> {{error.msg}}
+          </div>
+        {{/if}}
+        {{#if successMsg}}
+          <div class="alert alert-success" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+            <strong>Success!</strong> {{successMsg}}
+          </div>
+        {{/if}}
+        <div class="form-group">
+          <label class="col-form-label col-form-label-lg" for="slackUsername">Slack Username</label>
+          <div class="input-group mb-2 mr-sm-2 mb-sm-0">
+            <div class="input-group-prepend">
+              <div class="input-group-text">@</div>
+            </div>
+            <input value="{{slackUsername}}" type="text" class="form-control form-control-lg" name="slack[username]" aria-describedby="slackUsername">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-form-label col-form-label-lg" for="githubUsername">Github Username</label>
+            <input type="text" class="form-control form-control-lg" name="github[username]" aria-describedby="githubUsernameHelp">
+          <small id="githubUsernameHelp" class="form-text text-muted">Your Github username is not your email address</small>
+        </div>
+        <button class="btn btn-primary float-right">Signup</button>
+      </form>
+    </div>
+  </div>
+</div>
