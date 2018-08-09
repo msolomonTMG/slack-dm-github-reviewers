@@ -68,6 +68,21 @@ module.exports = {
       
     })
   },
+  sendSettingsLink: function(slackChannel, thisUser) {
+    return new Promise(function(resolve, reject) {
+      
+      let text = `Click <${APP_URL}/settings?uid=${thisUser._id}&rs=${thisUser.randomString}&slackUsername=${thisUser.slackUsername}|here> to adjust your settings`
+      
+      helpers.sendPrivateSlackMessage(slackChannel, text)
+        .then(result => {
+          return resolve(result)
+        })
+        .catch(err => {
+          return reject(err)
+        })
+      
+    })
+  },
   sendPullRequestToReviewer: function(subscribedUser, payload) {
     return new Promise(function(resolve, reject) {
       let mergeable
@@ -121,6 +136,13 @@ module.exports = {
         .catch(err => {
           return reject(err)
         })
+      
+    })
+  },
+  sendDefaultMessage: function() {
+    return new Promise(function(resolve, reject) {
+      
+      
       
     })
   }

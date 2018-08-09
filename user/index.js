@@ -38,6 +38,21 @@ module.exports = {
       
     })
   },
+  findBySlackChannel: function(slackChannel) {
+    return new Promise(function(resolve, reject) {
+      
+      User.findOne({
+        slackChannel: slackChannel
+      }, function(err, user) {
+        if(!err) {
+          return resolve(user)
+        } else {
+          return reject(err)
+        }
+      })
+      
+    })
+  },
   findById: function(id) {
     return new Promise(function(resolve, reject) {
       

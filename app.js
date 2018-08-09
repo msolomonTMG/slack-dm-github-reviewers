@@ -32,12 +32,24 @@ app.post('/slack', async function(req, res) {
   }
   
   if (req.body.event.type == 'message' && req.body.event.subtype != 'bot_message') {
-    if (req.body.event.text == 'signup') {
-      const slackUserInfo = await slack.getUserInfo(req.body.event.user)
-      const signupLinkSent = await slack.sendSignupLink(req.body.event.channel, slackUserInfo.user.name)
-      
-      return res.sendStatus(200)
+        
+    switch(req.body.event.text) {
+      case 'signup':
+      case 'settings':
+        const thisUser = await user.findBySlackChannel(req.body.event.channel)
+        // send signup link if not already signed up
+        if (!thisUser) {
+          const slackUserInfo = await slack.getUserInfo(req.body.event.user)
+          slack.sendSignupLink(req.body.event.channel, slackUserInfo.user.name)
+        } else {
+          // send settings link if already signed up
+          slack.sendSettingsLink(req.body.event.channel, thisUser)
+        }
+        break;
+      default:
+        slack.sendPrivateSlackMessage
     }
+    return res.sendStatus(200)
   }
   
 })
