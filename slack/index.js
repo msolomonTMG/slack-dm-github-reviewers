@@ -139,10 +139,16 @@ module.exports = {
       
     })
   },
-  sendDefaultMessage: function() {
+  sendDefaultMessage: function(channel, message) {
     return new Promise(function(resolve, reject) {
       
-      
+      helpers.sendPrivateSlackMessage(channel, message)
+        .then(success => {
+          return resolve(success)
+        })
+        .catch(err => {
+          return reject(err)
+        })
       
     })
   }

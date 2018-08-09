@@ -47,7 +47,7 @@ app.post('/slack', async function(req, res) {
         }
         break;
       default:
-        slack.sendPrivateSlackMessage
+        slack.sendDefaultMessage(req.body.event.channel, 'Sorry. The only things I understand right now is: `signup` and `settings`')
     }
     return res.sendStatus(200)
   }
