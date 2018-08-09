@@ -4,6 +4,7 @@ const
   bodyParser = require('body-parser'),
   url = require('url'),
   user = require('./user'),
+  slack = require('./slack'),
   mongoose = require('mongoose'),
   MONGO_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/mongo_test";
 
@@ -24,28 +25,43 @@ app.use(bodyParser.urlencoded({
 }))
 app.use(bodyParser.json())
 
-app.post('/github', async function(req, res) {
-  const payload = JSON.parse(req.body)
-  // stop if this is not a review request
-  if (payload.action != 'review_requested') {
-    return
+app.post('/slack', async function(req, res) {
+  console.log(req.body)
+  if (req.body.challenge) {
+    return res.send(req.body.challenge)
   }
   
+  if (req.body.event.type == 'message' && req.body.event.subtype != 'bot_message') {
+    if (req.body.event.text == 'signup') {
+      const slackUserInfo = await slack.getUserInfo(req.body.event.user)
+      const signupLinkSent = await slack.sendSignupLink(req.body.event.channel, slackUserInfo.user.name)
+      
+      return res.sendStatus(200)
+    }
+  }
+  
+})
+
+app.post('/github', async function(req, res) {
+  const payload = JSON.parse(req.body.payload)
+  // stop if this is not a review request
+  if (payload.action != 'review_requested') {
+    return res.sendStatus(200)
+  }
   const subscribedUser = await user.findByGithubLogin(payload.requested_reviewer.login)
   slack.sendPullRequestToReviewer(subscribedUser, payload)
-    .then(success => { res.send (200); return })
-    .catch(err => { res.send(500); return })
+    .then(success => { res.sendStatus(200); return })
+    .catch(err => { res.sendStatus(500); return })
 })
 
 app.post('/user/create', async function(req, res) {
   const newUserData = {
     slackUsername: req.body.slack.username,
+    slackChannel: req.body.slack.channel,
     githubLogin: req.body.github.username
   }
   
   const existingUser = await user.findByGithubLogin(newUserData.githubLogin)
-  console.log("EXISTING USER")
-  console.log(existingUser)
   if (existingUser) {
     res.redirect(url.format({
       pathname: '/settings',
@@ -56,9 +72,6 @@ app.post('/user/create', async function(req, res) {
     }))
   } else {
     const newUser = await user.create(newUserData)
-    console.log('newUser')
-    console.log(newUser)
-    console.log(newUser._id)
     res.redirect(url.format({
       pathname: '/settings',
       query: {
@@ -72,13 +85,6 @@ app.post('/user/create', async function(req, res) {
 
 app.post('/user/update', async function(req, res) {
   const userToUpdate = await user.findById(req.body.user.id)
-  console.log('User to update is:')
-  console.log(userToUpdate)
-  console.log('User submitted is:')
-  console.log({
-    rs: req.body.user.rs,
-    id: req.body.user.id
-  })
   if (userToUpdate.randomString != req.body.user.rs) {
     return res.sendStatus(403)
   }
@@ -111,7 +117,8 @@ app.post('/user/delete', async function(req, res) {
 
 app.get('/signup', function(req, res) {
   let viewData = {
-    slackUsername: req.query.slackUsername
+    slackUsername: req.query.slackUsername,
+    slackChannel: req.query.slackChannel
   }
   if (req.query.successMsg) {
     viewData.successMsg = Buffer.from(req.query.successMsg, 'base64').toString('ascii')
@@ -120,7 +127,6 @@ app.get('/signup', function(req, res) {
 })
 
 app.get('/settings', async function(req, res) {
-  console.log(req.query)
   const thisUser = await user.findById(req.query.uid)
   // if the user's random string is not present, they are forbidden
   if (req.query.rs != thisUser.randomString) {

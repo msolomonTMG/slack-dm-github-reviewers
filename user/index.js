@@ -2,6 +2,7 @@ const mongoose = require('mongoose')
 
 const userSchema = new mongoose.Schema({
   slackUsername: String,
+  slackChannel: String,
   githubLogin: String,
   randomString: String
 })
@@ -63,6 +64,7 @@ module.exports = {
       } else {
         newUser = new User ({
           slackUsername: userObj.slackUsername,
+          slackChannel: userObj.slackChannel,
           githubLogin: userObj.githubLogin,
           randomString: helpers.createRandomString()
         })
